@@ -1,122 +1,105 @@
-import OpenGL.GLUT as GLUT
-import OpenGL.GLU as GLU
-import OpenGL.GL as GL
-from png import Reader
-from sys import argv
-from math import sin, cos, pi
+from OpenGL.GLUT import *
+from OpenGL.GLU import *
+from OpenGL.GL import *
+import png
+from math import pi, cos, sin
 
 
-name = "Exercicio3 - Trab2"
-alpha = 90.0
-beta = 0
-delta_alpha = 1.15
-delta_x, delta_y, delta_z = 0, 0, 0
-bgc = (0, 0, 0, 1)
-n = 50
+name="Exercicio 3 - Trab2"
+# variaveis da esfera
+n = 20
 m = 50
-raio = 2
-texture = []
+r = 2.5
 
+alpha = 1.0
+beta = 0
+delta_alpha = 2
+delta_x = 0
+delta_y = 0
+delta_z = 0
 
-def f(i, j):
-    theta = ((pi * i) / (n - 1)) - (pi / 2)
-    phi = 2 * pi * j / (m - 1)
-    x = raio * cos(theta) * cos(phi)
-    y = raio * sin(theta)
-    z = raio * cos(theta) * sin(phi)
-    s = s_func(phi)
-    t = t_func(theta)
-    return x, y, z, s, t
-
-
-def s_func(phi):
-    return (phi / (2 * pi))
-
-
-def t_func(theta):
-    return ((theta + (pi / 2)) / pi)
-
-
-def load_textures():
+def LoadTextures():
     global texture
-    texture = GL.glGenTextures(2)
-    image = Reader(filename='.\\mapa.png')
-    w, h, pixels, metadata = image.read_flat()
-    if metadata['alpha']:
-        mode = GL.GL_RGBA
+    texture = glGenTextures(2)  # Gera 2 IDs para as texturas
+
+    # Seleciona a imagem do dado através reader no png.py
+    reader = png.Reader(filename='mapa.png')
+    w, h, pixels, metadata = reader.read_flat()
+    if (metadata['alpha']):
+        modo = GL_RGBA
     else:
-        mode = GL.GL_RGB
-    GL.glBindTexture(GL.GL_TEXTURE_2D, texture[0])
-    GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
-    GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, mode, w, h, 0, mode, GL.GL_UNSIGNED_BYTE, pixels.tolist())
-    GL.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT)
-    GL.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_REPEAT)
-    GL.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST)
-    GL.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST)
-    GL.glTexEnvf(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_DECAL)
+        modo = GL_RGB
+
+    glBindTexture(GL_TEXTURE_2D, texture[0])
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+    glTexImage2D(GL_TEXTURE_2D, 0, modo, w, h, 0, modo, GL_UNSIGNED_BYTE, pixels.tolist())
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL)
+
+
+
+# Cacacteristicas da esfera
+def f(i, j):
+    theta = ((3.14 * i) / (n - 1)) - (3.14 / 2)
+    phi = 2 * 3.14 * j / (n - 1)
+    x = r * cos(theta) * cos(phi)
+    y = r * sin(theta)
+    z = r * cos(theta) * sin(phi)
+    t = ((theta + (3.14 / 2)) / 3.14)
+    p = (phi / (2 * 3.14))
+    return x, y, z, t, p
 
 
 def figure():
-    GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
-    GL.glLoadIdentity()
-    GL.glPushMatrix()
-    GL.glTranslatef(delta_x, delta_y, delta_z)
-    GL.glRotatef(alpha, 0.0, 1.0, 0.0)
-    GL.glRotatef(beta, 0.0, 0.0, 1.0)
-    GL.glBindTexture(GL.GL_TEXTURE_2D, texture[0])
+    glPushMatrix()
+    glRotatef(alpha, 1.0, 0, 0.0)
+
+    glBindTexture(GL_TEXTURE_2D, texture[0])
     for i in range(n):
-        GL.glBegin(GL.GL_QUAD_STRIP)
+
+        glBegin(GL_QUAD_STRIP)
         for j in range(m):
-            x, y, z, s, t = f(i, j)
-            GL.glTexCoord2f(s, t)
-            GL.glVertex3f(x, y, z)
-            x, y, z, s, t = f(i + 1, j)
-            GL.glTexCoord2f(s, t)
-            GL.glVertex3f(x, y, z)
-        GL.glEnd()
-    GL.glPopMatrix()
-    GLUT.glutSwapBuffers()
+            x, y, z, t, p = f(i, j)
+            glTexCoord2f(p, t)
+            glVertex3f(x, y, z)
+            x, y, z, t, p = f(i + 1, j)
+            glTexCoord2f(p, t)
+            glVertex3f(x, y, z)
+
+        glEnd()
+    glPopMatrix()
 
 
-def draw():
+def desenha():
     global alpha
-    GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     figure()
     alpha = alpha + delta_alpha
     GLUT.glutSwapBuffers()
 
 
 def timer(i):
-    GLUT.glutPostRedisplay()
-    GLUT.glutTimerFunc(10, timer, 1)
+    glutPostRedisplay()
+    glutTimerFunc(10, timer, 1)
 
 
 def main():
-    GLUT.glutInit(argv)
-    GLUT.glutInitDisplayMode(GLUT.GLUT_DOUBLE | GLUT.GLUT_RGBA | GLUT.GLUT_DEPTH | GLUT.GLUT_MULTISAMPLE)
-    screen_width = GLUT.glutGet(GLUT.GLUT_SCREEN_WIDTH)
-    screen_height = GLUT.glutGet(GLUT.GLUT_SCREEN_HEIGHT)
-    window_width = round(2 * screen_width / 3)
-    window_height = round(2 * screen_height / 3)
-    GLUT.glutInitWindowSize(window_width, window_height)
-    GLUT.glutInitWindowPosition(round((screen_width - window_width) / 2), round((screen_height - window_height) / 2))
-    GLUT.glutCreateWindow(name)
-    GLUT.glutDisplayFunc(draw)
-    load_textures()
-    GL.glEnable(GL.GL_MULTISAMPLE)
-    GL.glEnable(GL.GL_DEPTH_TEST)
-    GL.glEnable(GL.GL_TEXTURE_2D)
-    GL.glClearColor(*bgc)
-    GL.glClearDepth(1.0)
-    GL.glDepthFunc(GL.GL_LESS)
-    GL.glShadeModel(GL.GL_SMOOTH)
-    GL.glMatrixMode(GL.GL_PROJECTION)
-    GLU.gluPerspective(-45, window_width / window_height, 0.1, 100.0)
-    GL.glTranslatef(0.0, 0.0, -10)
-    GL.glMatrixMode(GL.GL_MODELVIEW)
-    GLUT.glutTimerFunc(10, timer, 1)
-    GLUT.glutMainLoop()
-
+    glutInit(sys.argv)
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH | GLUT_MULTISAMPLE)
+    glutInitWindowSize(1024, 1024)
+    glutCreateWindow(name)
+    glutDisplayFunc(desenha)
+    LoadTextures()
+    glEnable(GL_MULTISAMPLE)
+    glEnable(GL_DEPTH_TEST)
+    glEnable(GL_TEXTURE_2D)
+    gluPerspective(-45, 5/3, 0.1, 100.0)
+    glTranslatef(0.0, 0.0, -10)
+    glutTimerFunc(10, timer, 1)
+    glutMainLoop()
 
 if __name__ == '__main__':
     main()
