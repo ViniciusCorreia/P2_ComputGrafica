@@ -1,139 +1,121 @@
-import OpenGL.GLUT as GLUT
-import OpenGL.GLU as GLU
-import OpenGL.GL as GL
-from png import Reader
-from sys import argv
+from OpenGL.GL import *
+from OpenGL.GLUT import *
+from OpenGL.GLU import *
+import sys
+import png
 
 
-name = "Exercicio 1 - Trab 2"
-alpha = 90.0
-beta = 0
-delta_alpha = 1.15
-delta_x, delta_y, delta_z = 0, 0, 0
-bgc = (0, 0, 0, 1)
-texture = []
+
+name="Exercicio 1 - Trab2"
+ESCAPE = '\033'
+window = 0
+xrot = yrot = zrot = 0.0
+dx = 0.1
+dy = 0
+dz = 0
 
 
-def load_textures():
+
+
+def LoadTextures():
     global texture
-    texture = GL.glGenTextures(2)
-    image = Reader(filename='.\\dado.png')
-    w, h, pixels, metadata = image.read_flat()
-    if metadata['alpha']:
-        mode = GL.GL_RGBA
+    texture = glGenTextures(2)
+    reader = png.Reader(filename='dado.png')
+    w, h, pixels, metadata = reader.read_flat()
+    if (metadata['alpha']):
+        modo = GL_RGBA
     else:
-        mode = GL.GL_RGB
-    GL.glBindTexture(GL.GL_TEXTURE_2D, texture[0])
-    GL.glPixelStorei(GL.GL_UNPACK_ALIGNMENT, 1)
-    GL.glTexImage2D(GL.GL_TEXTURE_2D, 0, mode, w, h, 0, mode, GL.GL_UNSIGNED_BYTE, pixels.tolist())
-    GL.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT)
-    GL.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_REPEAT)
-    GL.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST)
-    GL.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST)
-    GL.glTexEnvf(GL.GL_TEXTURE_ENV, GL.GL_TEXTURE_ENV_MODE, GL.GL_DECAL)
+        modo = GL_RGB
+    glBindTexture(GL_TEXTURE_2D, texture[0])
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+    glTexImage2D(GL_TEXTURE_2D, 0, modo, w, h, 0, modo, GL_UNSIGNED_BYTE, pixels.tolist())
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL)
 
 
-def figure():
-    GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
-    GL.glLoadIdentity()
-    GL.glPushMatrix()
-    GL.glTranslatef(delta_x, delta_y, delta_z)
-    GL.glRotatef(alpha, 1.0, 1.0, 0.0)
-    GL.glRotatef(beta, 0.0, 0.0, 1.0)
-    GL.glBindTexture(GL.GL_TEXTURE_2D, texture[0])
-    GL.glBegin(GL.GL_QUADS)
-    GL.glTexCoord2f(0.0, 0.0);
-    GL.glVertex3f(-1.0, -1.0, 1.0)
-    GL.glTexCoord2f(1 / 3, 0.0);
-    GL.glVertex3f(1.0, -1.0, 1.0)
-    GL.glTexCoord2f(1 / 3, 1 / 2);
-    GL.glVertex3f(1.0, 1.0, 1.0)
-    GL.glTexCoord2f(0.0, 1 / 2);
-    GL.glVertex3f(-1.0, 1.0, 1.0)
-    GL.glTexCoord2f(2 / 3, 1 / 2);
-    GL.glVertex3f(-1.0, -1.0, -1.0)
-    GL.glTexCoord2f(1.0, 1 / 2);
-    GL.glVertex3f(-1.0, 1.0, -1.0)
-    GL.glTexCoord2f(1.0, 1.0);
-    GL.glVertex3f(1.0, 1.0, -1.0)
-    GL.glTexCoord2f(2 / 3, 1.0);
-    GL.glVertex3f(1.0, -1.0, -1.0)
-    GL.glTexCoord2f(1 / 3, 1 / 2);
-    GL.glVertex3f(-1.0, 1.0, -1.0)
-    GL.glTexCoord2f(2 / 3, 1 / 2);
-    GL.glVertex3f(-1.0, 1.0, 1.0)
-    GL.glTexCoord2f(2 / 3, 1);
-    GL.glVertex3f(1.0, 1.0, 1.0)
-    GL.glTexCoord2f(1 / 3, 1);
-    GL.glVertex3f(1.0, 1.0, -1.0)
-    GL.glTexCoord2f(1 / 3, 0.0);
-    GL.glVertex3f(-1.0, -1.0, -1.0)
-    GL.glTexCoord2f(2 / 3, 0.0);
-    GL.glVertex3f(1.0, -1.0, -1.0)
-    GL.glTexCoord2f(2 / 3, 1 / 2);
-    GL.glVertex3f(1.0, -1.0, 1.0)
-    GL.glTexCoord2f(1 / 3, 1 / 2);
-    GL.glVertex3f(-1.0, -1.0, 1.0)
-    GL.glTexCoord2f(0.0, 1 / 2);
-    GL.glVertex3f(1.0, -1.0, -1.0)
-    GL.glTexCoord2f(1 / 3, 1 / 2);
-    GL.glVertex3f(1.0, 1.0, -1.0)
-    GL.glTexCoord2f(1 / 3, 1.0);
-    GL.glVertex3f(1.0, 1.0, 1.0)
-    GL.glTexCoord2f(0.0, 1.0);
-    GL.glVertex3f(1.0, -1.0, 1.0)
-    GL.glTexCoord2f(2 / 3, 0.0);
-    GL.glVertex3f(-1.0, -1.0, -1.0)
-    GL.glTexCoord2f(1.0, 0.0);
-    GL.glVertex3f(-1.0, -1.0, 1.0)
-    GL.glTexCoord2f(1.0, 1 / 2);
-    GL.glVertex3f(-1.0, 1.0, 1.0)
-    GL.glTexCoord2f(2 / 3, 1 / 2);
-    GL.glVertex3f(-1.0, 1.0, -1.0)
-    GL.glEnd()
-    GL.glPopMatrix()
-    GLUT.glutSwapBuffers()
+def desenha():
+    global xrot, yrot, zrot, texture
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+    glLoadIdentity()
+    glClearColor(0.0, 0.0, 0.0, 1.0)
+    glTranslatef(0.0, 0.0, -10.0)
+    glRotatef(1, 1.0, 0.0, 0.0)
 
 
-def draw():
-    global alpha
-    GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
-    figure()
-    alpha = alpha + delta_alpha
-    GLUT.glutSwapBuffers()
+    # figure creation
+    glBindTexture(GL_TEXTURE_2D, texture[0])
+    glBegin(GL_QUADS)
 
+    # ---Front Face----
+    glTexCoord2f(2 / 3, 1 / 2);glVertex3f(-1.0, -1.0, 1.0)
+    glTexCoord2f(1, 1 / 2);glVertex3f(1.0, -1.0, 1.0)
+    glTexCoord2f(1, 0);glVertex3f(1.0, 1.0, 1.0)
+    glTexCoord2f(2 / 3, 0);glVertex3f(-1.0, 1.0, 1.0)
+
+    # ---Back Face---
+    glTexCoord2f(0, 1 / 2);glVertex3f(-1.0, -1.0, -1.0)
+    glTexCoord2f(1 / 3, 1 / 2);glVertex3f(-1.0, 1.0, -1.0)
+    glTexCoord2f(1 / 3, 1);glVertex3f(1.0, 1.0, -1.0)
+    glTexCoord2f(0, 1);glVertex3f(1.0, -1.0, -1.0)
+
+    # ---Top Face---
+    glTexCoord2f(1 / 3, 1 / 2);glVertex3f(-1.0, 1.0, -1.0)
+    glTexCoord2f(2 / 3, 1 / 2);glVertex3f(-1.0, 1.0, 1.0)
+    glTexCoord2f(2 / 3, 0);glVertex3f(1.0, 1.0, 1.0)
+    glTexCoord2f(1 / 3, 0);glVertex3f(1.0, 1.0, -1.0)
+
+    # ---Bottom Face---
+    glTexCoord2f(1 / 3, 1 / 2);glVertex3f(-1.0, -1.0, -1.0)
+    glTexCoord2f(2 / 3, 1 / 2);glVertex3f(1.0, -1.0, -1.0)
+    glTexCoord2f(2 / 3, 1);glVertex3f(1.0, -1.0, 1.0)
+    glTexCoord2f(1 / 3, 1);glVertex3f(-1.0, -1.0, 1.0)
+
+    # ---Right face---
+    glTexCoord2f(2 / 3, 1 / 2);glVertex3f(1.0, -1.0, -1.0)
+    glTexCoord2f(1, 1 / 2);glVertex3f(1.0, 1.0, -1.0)
+    glTexCoord2f(1, 1);glVertex3f(1.0, 1.0, 1.0)
+    glTexCoord2f(2 / 3, 1);glVertex3f(1.0, -1.0, 1.0)
+
+    # ---Left Face---
+    glTexCoord2f(0, 1 / 2);glVertex3f(-1.0, -1.0, -1.0)
+    glTexCoord2f(1 / 3, 1 / 2);glVertex3f(-1.0, -1.0, 1.0)
+    glTexCoord2f(1 / 3, 0);glVertex3f(-1.0, 1.0, 1.0)
+    glTexCoord2f(0, 0);glVertex3f(-1.0, 1.0, -1.0)
+
+    glEnd()
+    glutSwapBuffers()
+
+def init(Width, Height):
+    LoadTextures()
+    glEnable(GL_TEXTURE_2D)
+    glClearColor(0.0, 0.0, 0.0, 0.0)
+    glClearDepth(1.0)
+    glDepthFunc(GL_LESS)
+    glEnable(GL_DEPTH_TEST)
+    glShadeModel(GL_SMOOTH)
+    glMatrixMode(GL_PROJECTION)
+    gluPerspective(45.0, float(Width) / float(Height), 0.1, 50.0)
+    glMatrixMode(GL_MODELVIEW)
 
 def timer(i):
-    GLUT.glutPostRedisplay()
-    GLUT.glutTimerFunc(10, timer, 1)
+    glutPostRedisplay()
+    glutTimerFunc(10, timer, 1)
 
 
 def main():
-    GLUT.glutInit(argv)
-    GLUT.glutInitDisplayMode(GLUT.GLUT_DOUBLE | GLUT.GLUT_RGBA | GLUT.GLUT_DEPTH | GLUT.GLUT_MULTISAMPLE)
-    screen_width = GLUT.glutGet(GLUT.GLUT_SCREEN_WIDTH)
-    screen_height = GLUT.glutGet(GLUT.GLUT_SCREEN_HEIGHT)
-    window_width = round(2 * screen_width / 3)
-    window_height = round(2 * screen_height / 3)
-    GLUT.glutInitWindowSize(window_width, window_height)
-    GLUT.glutInitWindowPosition(round((screen_width - window_width) / 2), round((screen_height - window_height) / 2))
-    GLUT.glutCreateWindow(name)
-    GLUT.glutDisplayFunc(draw)
-    load_textures()
-    GL.glEnable(GL.GL_MULTISAMPLE)
-    GL.glEnable(GL.GL_DEPTH_TEST)
-    GL.glEnable(GL.GL_TEXTURE_2D)
-    GL.glClearColor(*bgc)
-    GL.glClearDepth(1.0)
-    GL.glDepthFunc(GL.GL_LESS)
-    GL.glShadeModel(GL.GL_SMOOTH)
-    GL.glMatrixMode(GL.GL_PROJECTION)
-    GLU.gluPerspective(-45, window_width / window_height, 0.1, 100.0)
-    GL.glTranslatef(0.0, 0.0, -10)
-    GL.glMatrixMode(GL.GL_MODELVIEW)
-    GLUT.glutTimerFunc(10, timer, 1)
-    GLUT.glutMainLoop()
-
-
-if __name__ == '__main__':
+    glutInit(sys.argv)
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH | GLUT_MULTISAMPLE)
+    glutInitWindowSize(500, 500)
+    glutCreateWindow(name)
+    glutDisplayFunc(desenha)
+    init(2,2)
+    glClearColor(0, 0, 0, 1)
+    gluPerspective(10, 8 / 3, 0.1, 90)
+    glutTimerFunc(10, timer, 1)
+    glutMainLoop()
+if __name__ == "__main__":
     main()
